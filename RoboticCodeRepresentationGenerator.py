@@ -1,5 +1,6 @@
 from typing import List
 from typing import Dict
+import heapq
 
 
 class RoboticCodeRepresentationGenerator:
@@ -39,24 +40,22 @@ def calculate_frequencies(issued_commands: List[str]) -> Dict[str, int]:
 
 
 def create_tree(command_frequencies: Dict[str, int]) -> HuffmanNode:
-    treeNode = [HuffmanNode(frequency=frequency, command=command) for command, frequency in
-                command_frequencies.items()]
+    priority_queue = [(frequency, HuffmanNode(frequency=frequency, command=command)) for command, frequency in
+                      command_frequencies.items()]
 
-    sort_tree(treeNode)
+    heapq.heapify(priority_queue)
 
-    while len(treeNode) > 1:
-        new_node = HuffmanNode(frequency=sum(node.frequency for node in treeNode[:2]),
-                               left=treeNode[0],
-                               right=treeNode[1])
-        treeNode = treeNode[2:]
+    while len(priority_queue) > 1:
+        freq1, node1 = heapq.heappop(priority_queue)
+        freq2, node2 = heapq.heappop(priority_queue)
 
-        # depends on preferred encoding
+        new_node = HuffmanNode(frequency=freq1 + freq2,
+                               left=node1,
+                               right=node2)
 
-        # treeNode.append(new_node)
-        treeNode.insert(0, new_node)
-        sort_tree(treeNode)
+        heapq.heappush(priority_queue, (new_node.frequency, new_node))
 
-    return treeNode[0]
+    return priority_queue[0][1]
 
 
 def recursive_rcr(node: HuffmanNode, current_code: str, rcr_list: Dict[str, str]):
